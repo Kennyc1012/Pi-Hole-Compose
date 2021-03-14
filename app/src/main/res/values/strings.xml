@@ -14,7 +14,9 @@
     <string name="disable_title">Disable Pihole</string>
     <string name="Cancel">Cancel</string>
     <string name="status_failed">Unable to change status of Pi-hole</string>
-
+    <string name="error_not_found">Unable to find Pi-hole on the network</string>
+    <string name="error_generic">Something went wrong, please try again</string>
+    <string name="retry">Retry</string>
 
     <string-array name="disable_time">
         <item>Indefinitely</item>

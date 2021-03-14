@@ -1,6 +1,7 @@
 package com.kennyc.pi_hole.ui.theme
 
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -36,10 +37,20 @@ object PiUi {
         val summary = viewModel.stats.observeAsState()
         summary.value?.let { buildUi(it.first, it.second, viewModel) }
 
-        val status = viewModel.status.observeAsState()
-        status.value?.takeIf { !it }?.let {
-            Toast.makeText(LocalContext.current, R.string.status_failed, Toast.LENGTH_LONG).show()
-        }
+        viewModel
+            .statusError
+            .observeAsState()
+            .value
+            ?.let {
+                Toast.makeText(LocalContext.current, R.string.status_failed, Toast.LENGTH_LONG)
+                    .show()
+            }
+
+        viewModel
+            .errorMessage
+            .observeAsState()
+            .value
+            ?.let { errorScreen(it, viewModel) }
     }
 
     @Composable
@@ -248,7 +259,7 @@ object PiUi {
     }
 
     @Composable
-    fun showDisableDialog(state: MutableState<Boolean>, viewModel: MainViewModel) {
+    private fun showDisableDialog(state: MutableState<Boolean>, viewModel: MainViewModel) {
         Dialog(onDismissRequest = { state.value = false }) {
             Card() {
                 Column(
@@ -295,6 +306,27 @@ object PiUi {
                     ) {
                         Text(stringResource(R.string.Cancel))
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun errorScreen(@StringRes errorMessage: Int, viewModel: MainViewModel) {
+        if (errorMessage != -1) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(text = stringResource(errorMessage), style = Typography.subtitle1)
+                Button(onClick = {
+                    viewModel.refresh()
+                }, modifier = Modifier.padding(top = 16.dp)) {
+                    Text(text = stringResource(id = R.string.retry))
                 }
             }
         }

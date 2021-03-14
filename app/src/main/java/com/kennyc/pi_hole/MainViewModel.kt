@@ -10,6 +10,7 @@ import com.kennyc.data.pi_hole.model.PiholeSystemStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(private val repo: PiholeRepository) : ViewModel() {
@@ -17,13 +18,14 @@ class MainViewModel @Inject constructor(private val repo: PiholeRepository) : Vi
     private val _stats = MutableLiveData<Pair<PiholeSystemStatus, PiholeSummary>>()
     val stats: LiveData<Pair<PiholeSystemStatus, PiholeSummary>> = _stats
 
-    private val _status = MutableLiveData<Boolean>()
-    val status: LiveData<Boolean> = _status
+    private val _statusError = MutableLiveData<Unit>()
+    val statusError: LiveData<Unit> = _statusError
+
+    private val _errorMessage = MutableLiveData<Int>()
+    val errorMessage: LiveData<Int> = _errorMessage
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            fetchStats()
-        }
+        refresh()
     }
 
     fun enablePihole() {
@@ -34,7 +36,7 @@ class MainViewModel @Inject constructor(private val repo: PiholeRepository) : Vi
                 fetchStats()
             } else {
                 withContext(Dispatchers.Main) {
-                    _status.value = false
+                    _statusError.value = Unit
                 }
             }
         }
@@ -48,18 +50,36 @@ class MainViewModel @Inject constructor(private val repo: PiholeRepository) : Vi
                 fetchStats()
             } else {
                 withContext(Dispatchers.Main) {
-                    _status.value = false
+                    _statusError.value = Unit
                 }
             }
         }
     }
 
-    private suspend fun fetchStats() {
-        val status = repo.getSystemStatus()
-        val summary = repo.getSummary()
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            fetchStats()
+        }
+    }
 
-        withContext(Dispatchers.Main) {
-            _stats.value = Pair(status, summary)
+    private suspend fun fetchStats() {
+        try {
+            val status = repo.getSystemStatus()
+            val summary = repo.getSummary()
+
+            withContext(Dispatchers.Main) {
+                _errorMessage.value = -1
+                _stats.value = Pair(status, summary)
+            }
+        } catch (e: Exception) {
+            val msg = when (e) {
+                is UnknownHostException -> R.string.error_not_found
+                else -> R.string.error_generic
+            }
+
+            withContext(Dispatchers.Main) {
+                _errorMessage.value = msg
+            }
         }
     }
 }
