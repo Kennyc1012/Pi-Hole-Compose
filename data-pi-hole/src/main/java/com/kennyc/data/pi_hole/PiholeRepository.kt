@@ -60,10 +60,26 @@ class PiholeRepository(private val api: PiholeApi) {
         return PiholeSystemStatus(temp, loadPercentages, memory, isActive)
     }
 
-    suspend fun enable() = api.enable()
+    suspend fun enable(): Boolean {
+        val response = api.enable()
 
-    suspend fun disablePihole(durationInSeconds: Int?) {
-        durationInSeconds?.let { api.disable(it) } ?: api.disableIndefinitely()
+        // Errors will return an empty JSON array
+        return when {
+            response.isJsonArray -> false
+            response.isJsonObject -> response.asJsonObject.get("status").asString == STATUS_ENABLED
+            else -> false
+        }
+    }
+
+    suspend fun disablePihole(durationInSeconds: Int?): Boolean {
+        val response = durationInSeconds?.let { api.disable(it) } ?: api.disableIndefinitely()
+
+        // Errors will return an empty JSON array
+        return when {
+            response.isJsonArray -> false
+            response.isJsonObject -> response.asJsonObject.get("status").asString == STATUS_DISABLED
+            else -> false
+        }
     }
 
     private fun SummaryResponse.toData(): PiholeSummary {
@@ -79,3 +95,5 @@ class PiholeRepository(private val api: PiholeApi) {
 }
 
 private const val STATUS_ACTIVE = "Active"
+private const val STATUS_ENABLED = "enabled"
+private const val STATUS_DISABLED = "disabled"

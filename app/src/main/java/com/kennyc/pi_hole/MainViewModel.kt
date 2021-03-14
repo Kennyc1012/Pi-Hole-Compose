@@ -15,8 +15,10 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val repo: PiholeRepository) : ViewModel() {
 
     private val _stats = MutableLiveData<Pair<PiholeSystemStatus, PiholeSummary>>()
-
     val stats: LiveData<Pair<PiholeSystemStatus, PiholeSummary>> = _stats
+
+    private val _status = MutableLiveData<Boolean>()
+    val status: LiveData<Boolean> = _status
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -26,15 +28,29 @@ class MainViewModel @Inject constructor(private val repo: PiholeRepository) : Vi
 
     fun enablePihole() {
         viewModelScope.launch {
-            repo.enable()
-            fetchStats()
+            val result = repo.enable()
+
+            if (result) {
+                fetchStats()
+            } else {
+                withContext(Dispatchers.Main) {
+                    _status.value = false
+                }
+            }
         }
     }
 
     fun disablePihole(durationInSeconds: Int?) {
         viewModelScope.launch {
-            repo.disablePihole(durationInSeconds)
-            fetchStats()
+            val result = repo.disablePihole(durationInSeconds)
+
+            if (result) {
+                fetchStats()
+            } else {
+                withContext(Dispatchers.Main) {
+                    _status.value = false
+                }
+            }
         }
     }
 

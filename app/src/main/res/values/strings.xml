@@ -13,6 +13,8 @@
     <string name="disable">Disable</string>
     <string name="disable_title">Disable Pihole</string>
     <string name="Cancel">Cancel</string>
+    <string name="status_failed">Unable to change status of Pi-hole</string>
+
 
     <string-array name="disable_time">
         <item>Indefinitely</item>

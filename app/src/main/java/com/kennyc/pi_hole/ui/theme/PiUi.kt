@@ -1,5 +1,6 @@
 package com.kennyc.pi_hole.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -11,6 +12,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +35,11 @@ object PiUi {
     fun piholeScreen(viewModel: MainViewModel) {
         val summary = viewModel.stats.observeAsState()
         summary.value?.let { buildUi(it.first, it.second, viewModel) }
+
+        val status = viewModel.status.observeAsState()
+        status.value?.takeIf { !it }?.let {
+            Toast.makeText(LocalContext.current, R.string.status_failed, Toast.LENGTH_LONG).show()
+        }
     }
 
     @Composable
