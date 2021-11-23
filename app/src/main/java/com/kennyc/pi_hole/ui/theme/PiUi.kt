@@ -95,7 +95,7 @@ fun PiholeScreen(viewModel: MainViewModel) {
 fun BuildUi(
     status: PiholeSystemStatus,
     summary: PiholeSummary,
-    showDialog: Boolean,
+    showDialog: Boolean = false,
     enableDisableClick: () -> Unit = {},
     dialogClick: (Int) -> Unit = {},
     dialogDismiss: () -> Unit = {},
@@ -369,5 +369,5 @@ private fun ErrorScreen(@StringRes errorMessage: Int, refresh: () -> Unit = {}) 
 fun PreviewUi() {
     val status = PiholeSystemStatus(30.00, floatArrayOf(.1f, .2f, .3f), 19.8, true)
     val summary = PiholeSummary("1,234", "9,876", "10,654", 15.54, 30, "Good")
-    BuildUi(status, summary, false)
+    BuildUi(status, summary, true)
 }
